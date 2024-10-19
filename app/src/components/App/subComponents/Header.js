@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Header = () => {
     return (
@@ -7,13 +8,13 @@ const Header = () => {
             <nav>
                 <ul className="nav justify-content-center">
                     <li className="nav-item">
-                        <a className="nav-link text-white" href="#about">Про нас</a>
+                        <Link className="nav-link text-white" to="/">Про нас</Link>
                     </li>
                     <li className="nav-item">
-                        <a className="nav-link text-white" href="#services">Послуги</a>
+                        <Link className="nav-link text-white" to="/services">Послуги</Link>
                     </li>
                     <li className="nav-item">
-                        <a className="nav-link text-white" href="#contact">Контакти</a>
+                        <Link className="nav-link text-white" to="/profile">Профіль</Link>
                     </li>
                 </ul>
             </nav>
