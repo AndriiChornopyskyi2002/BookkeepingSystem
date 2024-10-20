@@ -7,26 +7,18 @@ const Profile = () => {
     const [password, setPassword] = useState('');
     const [isLoggedIn, setIsLoggedIn] = useState(false); // Стан для перевірки входу
 
-    const handleLogin = async () => {
+    const handleAuth = async (type) => {
         try {
-            const response = await axios.post('http://localhost:5000/login', {
+            const url = `http://localhost:5000/${type}`;
+            const response = await axios.post(url, {
                 login,
                 password
             });
             alert(response.data.message);
-            setIsLoggedIn(true); // Успішний вхід
-        } catch (error) {
-            alert(error.response.data.message);
-        }
-    };
 
-    const handleRegister = async () => {
-        try {
-            const response = await axios.post('http://localhost:5000/register', {
-                login,
-                password
-            });
-            alert(response.data.message);
+            if (type === 'login') {
+                setIsLoggedIn(true); // Успішний вхід
+            }
         } catch (error) {
             alert(error.response.data.message);
         }
@@ -77,8 +69,8 @@ const Profile = () => {
                             />
 
                             <div>
-                                <Button onClick={handleLogin}>Увійти</Button>
-                                <Button onClick={handleRegister}>Реєструватись</Button>
+                                <Button onClick={() => handleAuth('login')}>Увійти</Button>
+                                <Button onClick={() => handleAuth('register')}>Реєструватись</Button>
                             </div>
                         </div>
                     </div>
