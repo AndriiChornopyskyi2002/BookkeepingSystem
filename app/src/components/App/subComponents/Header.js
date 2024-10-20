@@ -11,7 +11,7 @@ const Header = ({login, isLoggedIn}) => {
                         <Link className="nav-link text-white" to="/">Про нас</Link>
                     </li>
                     <li className="nav-item">
-                        <Link className="nav-link text-white" to="/services">Послуги</Link>
+                        <Link className="nav-link text-white" to="/services">Пошук</Link>
                     </li>
                     <li className="nav-item">
                         <Link className="nav-link text-white" to="/profile">{isLoggedIn ? "Профіль" : "Увійти/Зареєструватись"}</Link>

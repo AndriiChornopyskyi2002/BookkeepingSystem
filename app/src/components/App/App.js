@@ -17,7 +17,7 @@ const App = () => {
                 <Header login={login} isLoggedIn={isLoggedIn} />
                 <Routes>
                     <Route path="/" element={<About />} />
-                    <Route path="/services" element={<Services />} />
+                    <Route path="/services" element={<Services isLoggedIn={isLoggedIn} login={login} />} />
                     <Route path="/profile" element={<Profile isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} login={login} setLogin={setLogin} />} />
                     {login === "admin" && isLoggedIn ? <Route path="/users" element={<Users />} /> : null }
                 </Routes>
