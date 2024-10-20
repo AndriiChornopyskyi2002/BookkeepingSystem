@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import { Button } from "@mui/material";
 import axios from 'axios';
 
-const Profile = () => {
-    const [login, setLogin] = useState('');
+const Profile = ({ login, setLogin, isLoggedIn, setIsLoggedIn }) => {
     const [password, setPassword] = useState('');
-    const [isLoggedIn, setIsLoggedIn] = useState(false); // Стан для перевірки входу
 
     const handleAuth = async (type) => {
         try {
