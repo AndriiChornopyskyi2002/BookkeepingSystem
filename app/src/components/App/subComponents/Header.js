@@ -14,10 +14,10 @@ const Header = ({login, isLoggedIn}) => {
                         <Link className="nav-link text-white" to="/services">Послуги</Link>
                     </li>
                     <li className="nav-item">
-                        <Link className="nav-link text-white" to="/profile">Профіль</Link>
+                        <Link className="nav-link text-white" to="/profile">{isLoggedIn ? "Профіль" : "Увійти/Зареєструватись"}</Link>
                     </li>
                     {login === "admin" && isLoggedIn ? <li className="nav-item">
-                        <Link className="nav-link text-white" to="/profile">Користувачі</Link>
+                        <Link className="nav-link text-white" to="/users">Користувачі</Link>
                     </li> : null}
 
                 </ul>

@@ -5,6 +5,7 @@ import Footer from './subComponents/Footer';
 import About from "./pages/About";
 import Services from "./pages/Services";
 import Profile from "./pages/Profile";
+import Users from "./pages/Users";
 
 const App = () => {
     const [login, setLogin] = useState('');
@@ -18,6 +19,7 @@ const App = () => {
                     <Route path="/" element={<About />} />
                     <Route path="/services" element={<Services />} />
                     <Route path="/profile" element={<Profile isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} login={login} setLogin={setLogin} />} />
+                    {login === "admin" && isLoggedIn ? <Route path="/users" element={<Users />} /> : null }
                 </Routes>
                 <Footer />
             </div>

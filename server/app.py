@@ -21,6 +21,7 @@ class User(db.Model):
 with app.app_context():
     db.create_all()
 
+# Маршрут для входу
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
@@ -29,6 +30,7 @@ def login():
         return jsonify({"message": "Login successful"}), 200
     return jsonify({"message": "Invalid login or password"}), 401
 
+# Маршрут для реєстрації
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
@@ -41,6 +43,18 @@ def register():
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"message": "Registration successful"}), 201
+
+# Маршрут для отримання списку користувачів
+@app.route('/users', methods=['GET'])
+def get_users():
+    users = User.query.all()  # Отримуємо всіх користувачів з бази
+    users_list = []
+    for user in users:
+        users_list.append({
+            "id": user.id,
+            "login": user.login
+        })
+    return jsonify(users_list), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
