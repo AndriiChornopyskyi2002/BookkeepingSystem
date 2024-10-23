@@ -20,6 +20,10 @@ const Books = ({login}) => {
             const response = await axios.get('http://localhost:5000/books');
             setBooks(response.data);
             setLoading(false);
+
+            // Виводимо список посилань на зображення
+            const imageLinks = response.data.map(book => book.image);
+            console.log('Посилання на зображення книг:', imageLinks);
         } catch (error) {
             console.error('Error fetching books:', error);
             setLoading(false);
@@ -158,7 +162,7 @@ const Books = ({login}) => {
 
                 {/* Кнопки пагінації */}
                 <nav>
-                    <ul className="pagination justify-content-center">
+                    <ul className="pagination justify-content-center p-5">
                         {Array.from({length: totalPages}, (_, index) => (
                             <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
                                 <button className="page-link" onClick={() => paginate(index + 1)}>
