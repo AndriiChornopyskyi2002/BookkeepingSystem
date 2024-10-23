@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { TailSpin } from 'react-loader-spinner'; // Імпортуємо лоудер
+import { TailSpin } from 'react-loader-spinner';
 
 const Users = () => {
-    const [users, setUsers] = useState([]); // Стан для зберігання списку користувачів
+    const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true); // Стан для відстеження завантаження
 
     // Викликаємо API для отримання користувачів при завантаженні компонента
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/users'); // Запит до вашого API
+                const response = await axios.get('http://localhost:5000/users');
                 setUsers(response.data); // Зберігаємо користувачів в стані
                 setLoading(false); // Вимикаємо стан завантаження
             } catch (error) {
@@ -23,7 +23,7 @@ const Users = () => {
     }, []);
 
     return (
-        <section className="container my-4">
+        <section className="container">
             {loading ? <div className="d-flex justify-content-center">
                 <TailSpin
                     height="80"

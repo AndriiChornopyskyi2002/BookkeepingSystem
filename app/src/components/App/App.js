@@ -6,6 +6,7 @@ import About from "./pages/About";
 import Services from "./pages/Services";
 import Profile from "./pages/Profile";
 import Users from "./pages/Users";
+import Books from "./pages/Books";
 
 const App = () => {
     const [login, setLogin] = useState('');
@@ -15,12 +16,15 @@ const App = () => {
         <Router>
             <div className="App">
                 <Header login={login} isLoggedIn={isLoggedIn} />
-                <Routes>
-                    <Route path="/" element={<About />} />
-                    <Route path="/services" element={<Services isLoggedIn={isLoggedIn} login={login} />} />
-                    <Route path="/profile" element={<Profile isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} login={login} setLogin={setLogin} />} />
-                    {login === "admin" && isLoggedIn ? <Route path="/users" element={<Users />} /> : null }
-                </Routes>
+                <div className="pb-5">
+                    <Routes>
+                        <Route path="/" element={<About />} />
+                        <Route path="/services" element={<Services isLoggedIn={isLoggedIn} login={login} />} />
+                        <Route path="/profile" element={<Profile isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} login={login} setLogin={setLogin} />} />
+                        {login === "admin" && isLoggedIn ? <Route path="/users" element={<Users />} /> : null }
+                        <Route path="/books" element={<Books login={login} />} />
+                    </Routes>
+                </div>
                 <Footer />
             </div>
         </Router>

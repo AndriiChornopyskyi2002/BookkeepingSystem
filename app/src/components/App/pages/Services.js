@@ -36,7 +36,7 @@ const Services = ({ isLoggedIn, login }) => {
     };
 
     return (
-        <section className="container my-4">
+        <section className="container">
             {isLoggedIn ? (
                 <div>
                     <h2>Пошук</h2>
@@ -58,7 +58,7 @@ const Services = ({ isLoggedIn, login }) => {
                     </div>
                 </div>
             ) : (
-                <div className="d-grid justify-content-center align-center h-100">
+                <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{height: "60vh"}}>
                     <h3>Зареєструйтесь, щоб шукати нові знайомства</h3>
                     <Button onClick={() => navigate('/profile')} variant="contained" color="primary">
                         Перейти до профілю

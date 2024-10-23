@@ -42,33 +42,36 @@ const Profile = ({ login, setLogin, isLoggedIn, setIsLoggedIn }) => {
 
     // Основний рендеринг
     return (
-        <section className="container my-4">
+        <section className="container">
             {isLoggedIn ? (
                 <UserProfile /> // Відображення профілю при вході
             ) : (
                 <div>
                     <h2>Профіль</h2>
-                    <p>Увійдіть, або зареєструйтесь</p>
+                    <div className="d-grid justify-content-center align-items-center" style={{height: '50vh'}}>
 
-                    <div className="d-grid justify-center align-center">
-                        <div className="d-grid justify-center">
-                            <h6>Логін:</h6>
-                            <input
-                                className="mb-2"
-                                value={login}
-                                onChange={(e) => setLogin(e.target.value)}
-                            />
-                            <h6>Пароль:</h6>
-                            <input
-                                className="mt-2 mb-2"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                type="password"
-                            />
 
-                            <div>
-                                <Button onClick={() => handleAuth('login')}>Увійти</Button>
-                                <Button onClick={() => handleAuth('register')}>Реєструватись</Button>
+                        <div className="d-grid justify-center align-center">
+                            <p>Увійдіть, або зареєструйтесь</p>
+                            <div className="d-grid justify-center">
+                                <h6>Логін:</h6>
+                                <input
+                                    className="mb-2"
+                                    value={login}
+                                    onChange={(e) => setLogin(e.target.value)}
+                                />
+                                <h6>Пароль:</h6>
+                                <input
+                                    className="mt-2 mb-2"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    type="password"
+                                />
+
+                                <div>
+                                    <Button onClick={() => handleAuth('login')}>Увійти</Button>
+                                    <Button onClick={() => handleAuth('register')}>Реєструватись</Button>
+                                </div>
                             </div>
                         </div>
                     </div>
