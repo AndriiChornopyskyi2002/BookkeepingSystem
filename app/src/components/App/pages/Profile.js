@@ -103,7 +103,7 @@ const Profile = ({ login, setLogin, isLoggedIn, setIsLoggedIn }) => {
                 ) : (
                     <div>
                         <h2>Профіль</h2>
-                        <div className="d-grid justify-content-center align-items-center" style={{height: '50vh'}}>
+                        <div className="d-grid justify-content-center align-items-center mt-5">
                             <div className="d-grid justify-center">
                                 <p>Увійдіть, або зареєструйтесь</p>
                                 <div className="d-grid justify-center">
