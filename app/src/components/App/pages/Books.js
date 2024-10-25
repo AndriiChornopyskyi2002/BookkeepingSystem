@@ -75,10 +75,10 @@ const Books = ({login}) => {
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     return (
-        <section className="container my-4">
+        <section className="container">
             <h2>Пошук книжок</h2>
 
-            <div className="mb-3">
+            <div className="mb-3 mt-5">
                 <input
                     type="text"
                     className="form-control"
