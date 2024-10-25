@@ -31,7 +31,7 @@ const Books = ({login}) => {
     };
 
     useEffect(() => {
-        fetchBooks();
+        fetchBooks().then(() => console.log("success"));
     }, []);
 
     const addBook = async (e) => {
@@ -50,7 +50,7 @@ const Books = ({login}) => {
             });
 
             if (response.data.message === 'Book added successfully') {
-                fetchBooks(); // Оновлюємо список книг після додавання
+                await fetchBooks(); // Оновлюємо список книг після додавання
                 setNewBook({ title: '', rating: '', image: '' });
                 setError('');
                 setShowModal(false); // Закриваємо модальне вікно
