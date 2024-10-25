@@ -24,6 +24,7 @@ const Users = () => {
 
     return (
         <section className="container">
+            <h2>Користувачі</h2>
             {loading ? <div className="d-flex justify-content-center">
                 <TailSpin
                     height="80"
@@ -31,23 +32,24 @@ const Users = () => {
                     color="#4fa94d"
                     ariaLabel="loading"
                 />
-            </div> : <div><h2>Користувачі</h2>
+            </div> : <div>
                 <table className="table table-striped">
-                <thead>
-                <tr>
-                <th>#</th>
-                <th>Логін</th>
-                </tr>
-                </thead>
-                <tbody>
-            {users.map((user, index) => (
-                <tr key={user.id}>
-            <td>{index + 1}</td>
-            <td>{user.login}</td>
-        </tr>
-    ))}
-</tbody>
-</table></div>}
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Логін</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {users.map((user, index) => (
+                        <tr key={user.id}>
+                            <td>{index + 1}</td>
+                            <td>{user.login}</td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            </div>}
         </section>
     );
 };
