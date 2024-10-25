@@ -14,16 +14,16 @@ const Header = ({ login, isLoggedIn }) => {
     return (
         <header className="bg-dark text-white text-center p-3">
             <div className="container">
-                <h1>Бібліотека</h1>
+                <div className="d-flex justify-content-end">
+                    <Button
+                        onClick={toggleMobileMenu}
+                        className="d-md-none" // відображення тільки на мобільних пристроях
+                        aria-label="Toggle navigation"
+                    >
+                        {isMobileMenuOpen ? <CloseIcon style={{color: 'white'}}/> : <MenuIcon style={{color: 'white'}}/>}
 
-                <Button
-                    onClick={toggleMobileMenu}
-                    className="d-md-none" // відображення тільки на мобільних пристроях
-                    aria-label="Toggle navigation"
-                >
-                    {isMobileMenuOpen ? <CloseIcon style={{color: 'white'}}/> : <MenuIcon style={{color: 'white'}}/>}
-
-                </Button>
+                    </Button>
+                </div>
 
                 <nav className={`${isMobileMenuOpen ? 'd-block' : 'd-none'} d-md-flex`}>
                     <ul className="nav justify-content-center flex-column flex-md-row">
