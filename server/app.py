@@ -141,7 +141,14 @@ def get_books():
     ]
     return jsonify(books_list), 200
 
-# Маршрут для додавання або видалення лайка
+@app.route('/book/<int:book_id>/user-like', methods=['GET'])
+def check_user_like(book_id):
+    user_login = request.args.get('user_login')  # Отримуємо логін користувача
+    like = Like.query.filter_by(user_login=user_login, book_id=book_id).first()
+    liked = like is not None  # true, якщо лайк існує
+
+    return jsonify({"liked": liked}), 200
+
 @app.route('/book/<int:book_id>/like', methods=['POST'])
 def toggle_like(book_id):
     book = Book.query.get(book_id)

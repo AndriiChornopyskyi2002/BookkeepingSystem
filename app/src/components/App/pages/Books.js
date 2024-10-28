@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import axios from 'axios';
 import { Modal, Button } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -75,13 +75,53 @@ const Books = ({login, isLoggedIn}) => {
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-    const toggleLike = async (bookId, action) => {
+    const [likesStatus, setLikesStatus] = useState({});
+
+    const previousBooksRef = useRef();
+
+    useEffect(() => {
+        const fetchLikesStatus = async () => {
+            if (isLoggedIn && currentBooks.length > 0) {
+                const likesPromises = currentBooks.map(async (book) => {
+                    const response = await axios.get(`http://localhost:5000/book/${book.id}/user-like`, {
+                        params: { user_login: login }
+                    });
+                    return { bookId: book.id, liked: response.data.liked };
+                });
+
+                const likesData = await Promise.all(likesPromises);
+                const updatedLikesStatus = likesData.reduce((acc, { bookId, liked }) => {
+                    acc[bookId] = liked;
+                    return acc;
+                }, {});
+                setLikesStatus(updatedLikesStatus);
+            }
+        };
+
+        // Виконуємо запит тільки якщо поточний `currentBooks` відрізняється від попереднього
+        if (JSON.stringify(previousBooksRef.current) !== JSON.stringify(currentBooks)) {
+            fetchLikesStatus().then(() => console.log("Success"));
+            previousBooksRef.current = currentBooks; // Оновлюємо попередній стан книг
+        }
+    }, [currentBooks, login, isLoggedIn]);
+
+    const toggleLike = async (bookId) => {
         if (isLoggedIn) {
             try {
+                // Перевірка, чи є лайк від користувача для цієї книги
+                const userLikeResponse = await axios.get(`http://localhost:5000/book/${bookId}/user-like`, {
+                    params: { user_login: login }
+                });
+
+                const userLiked = userLikeResponse.data.liked; // true, якщо користувач вже поставив лайк
+                const action = userLiked ? 'unlike' : 'like'; // Визначення дії
+
+                // Виконання запиту для оновлення лайка
                 const response = await axios.post(`http://localhost:5000/book/${bookId}/like`, {
                     action,
-                    user_login: login  // Додаємо логін користувача
+                    user_login: login
                 });
+
                 const updatedBooks = books.map(book =>
                     book.id === bookId ? { ...book, likes: response.data.likes } : book
                 );
@@ -211,8 +251,13 @@ const Books = ({login, isLoggedIn}) => {
                                         <p className="card-text">Рейтинг: {book.rating}</p>
                                         <p>Лайки: {book.likes}</p>
                                         <p>Збереження: {book.saves}</p>
-                                        <button onClick={() => toggleLike(book.id, 'like')}>👍 Лайк</button>
-                                        <button onClick={() => toggleLike(book.id, 'unlike')}>👎 Відмінити лайк</button>
+                                        {isLoggedIn && (
+                                            <>
+                                                <button onClick={() => toggleLike(book.id)}>
+                                                    {likesStatus[book.id] ? '❌ Забрати лайк' : '👍 Лайк'}
+                                                </button>
+                                            </>
+                                        )}
                                         <button onClick={() => toggleSave(book.id, 'save')}>💾 Зберегти</button>
                                         <button onClick={() => toggleSave(book.id, 'unsave')}>❌ Відмінити збереження
                                         </button>
