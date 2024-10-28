@@ -20,14 +20,12 @@ const Books = ({login, isLoggedIn}) => {
         try {
             const response = await axios.get('http://localhost:5000/books');
             setBooks(response.data);
-            setLoading(false);
 
             // Виводимо список посилань на зображення
             const imageLinks = response.data.map(book => book.image);
             console.log('Посилання на зображення книг:', imageLinks);
         } catch (error) {
             console.error('Error fetching books:', error);
-            setLoading(false);
         }
     };
 
@@ -95,6 +93,7 @@ const Books = ({login, isLoggedIn}) => {
                     return acc;
                 }, {});
                 setLikesStatus(updatedLikesStatus);
+                setLoading(false);
             }
         };
 
@@ -105,7 +104,11 @@ const Books = ({login, isLoggedIn}) => {
         }
     }, [currentBooks, login, isLoggedIn]);
 
+    const [loadingBookId, setLoadingBookId] = useState(null);
+
     const toggleLike = async (bookId) => {
+        setLoadingBookId(bookId); // Встановлюємо поточний `bookId` для кнопки, яку натиснули
+
         if (isLoggedIn) {
             try {
                 // Перевірка, чи є лайк від користувача для цієї книги
@@ -143,6 +146,8 @@ const Books = ({login, isLoggedIn}) => {
                 }
             });
         }
+
+        setLoadingBookId(null); // Очищаємо стан, коли запит завершено
     };
 
     const toggleSave = async (bookId, action) => {
@@ -253,7 +258,10 @@ const Books = ({login, isLoggedIn}) => {
                                         <p>Збереження: {book.saves}</p>
                                         {isLoggedIn && (
                                             <>
-                                                <button onClick={() => toggleLike(book.id)}>
+                                                <button
+                                                    disabled={loadingBookId === book.id}
+                                                    onClick={() => toggleLike(book.id)}
+                                                >
                                                     {likesStatus[book.id] ? '❌ Забрати лайк' : '👍 Лайк'}
                                                 </button>
                                             </>
