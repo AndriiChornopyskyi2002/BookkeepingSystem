@@ -137,16 +137,18 @@ def add_book():
 @app.route('/books', methods=['GET'])
 def get_books():
     books = Book.query.all()
-    books_list = []
-    for book in books:
-        books_list.append({
+    books_list = [
+        {
             "id": book.id,
             "title": book.title,
             "rating": book.rating,
-            "image": book.image
-        })
-    return jsonify(books_list), 200
-
+            "image": book.image,
+            "likes": book.likes,
+            "saves": book.saves  # Передаємо кількість лайків
+        }
+        for book in books
+    ]
+    return jsonify(books_list)
 # Маршрут для додавання або видалення лайка
 @app.route('/book/<int:book_id>/like', methods=['POST'])
 def toggle_like(book_id):
