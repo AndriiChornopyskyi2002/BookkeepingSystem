@@ -111,6 +111,8 @@ class Book(db.Model):
     title = db.Column(db.String(120), nullable=False)
     rating = db.Column(db.Float, nullable=False)
     image = db.Column(db.String(255), nullable=False)
+    likes = db.Column(db.Integer, default=0)
+    saves = db.Column(db.Integer, default=0)
 
 
 # Створення таблиці
@@ -145,6 +147,38 @@ def get_books():
         })
     return jsonify(books_list), 200
 
+# Маршрут для додавання або видалення лайка
+@app.route('/book/<int:book_id>/like', methods=['POST'])
+def toggle_like(book_id):
+    book = Book.query.get(book_id)
+    if not book:
+        return jsonify({"message": "Book not found"}), 404
+
+    action = request.json.get('action')
+    if action == 'like':
+        book.likes += 1
+    elif action == 'unlike':
+        book.likes -= 1
+
+    db.session.commit()
+    return jsonify({"message": "Like updated", "likes": book.likes}), 200
+
+
+# Маршрут для додавання або видалення збереження
+@app.route('/book/<int:book_id>/save', methods=['POST'])
+def toggle_save(book_id):
+    book = Book.query.get(book_id)
+    if not book:
+        return jsonify({"message": "Book not found"}), 404
+
+    action = request.json.get('action')
+    if action == 'save':
+        book.saves += 1
+    elif action == 'unsave':
+        book.saves -= 1
+
+    db.session.commit()
+    return jsonify({"message": "Save updated", "saves": book.saves}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)

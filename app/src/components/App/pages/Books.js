@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Modal, Button } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { TailSpin } from 'react-loader-spinner'; // Якщо ви використовуєте TailSpin
+import { TailSpin } from 'react-loader-spinner';
+import Swal from "sweetalert2"; // Якщо ви використовуєте TailSpin
 
-const Books = ({login}) => {
+const Books = ({login, isLoggedIn}) => {
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [newBook, setNewBook] = useState({ title: '', rating: '', image: '' });
@@ -74,6 +75,62 @@ const Books = ({login}) => {
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+    const toggleLike = async (bookId, action) => {
+        if(isLoggedIn) {
+            try {
+                const response = await axios.post(`http://localhost:5000/book/${bookId}/like`, { action });
+                const updatedBooks = books.map(book =>
+                    book.id === bookId ? { ...book, likes: response.data.likes } : book
+                );
+                setBooks(updatedBooks);
+            } catch (error) {
+                console.error("Error updating like:", error);
+            }
+        } else {
+            Swal.fire({
+                title: "Помилка!",
+                html: 'Авторизуйтесь, щоб виконати теперішню дію <a href="#" id="go-to-profile" style="color: blue; text-decoration: underline; cursor: pointer;">тут</a>',
+                icon: "error",
+                didOpen: () => {
+                    const link = document.getElementById('go-to-profile');
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault(); // Запобігаємо переходу за замовчуванням
+                        // Перехід на роут profile
+                        window.location.href = '/profile';
+                    });
+                }
+            });
+        }
+    };
+
+    const toggleSave = async (bookId, action) => {
+        if(isLoggedIn) {
+            try {
+                const response = await axios.post(`http://localhost:5000/book/${bookId}/save`, { action });
+                const updatedBooks = books.map(book =>
+                    book.id === bookId ? { ...book, saves: response.data.saves } : book
+                );
+                setBooks(updatedBooks);
+            } catch (error) {
+                console.error("Error updating save:", error);
+            }
+        } else {
+            Swal.fire({
+                title: "Помилка!",
+                html: 'Авторизуйтесь, щоб виконати теперішню дію <a href="#" id="go-to-profile" style="color: blue; text-decoration: underline; cursor: pointer;">тут</a>',
+                icon: "error",
+                didOpen: () => {
+                    const link = document.getElementById('go-to-profile');
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault(); // Запобігаємо переходу за замовчуванням
+                        // Перехід на роут profile
+                        window.location.href = '/profile';
+                    });
+                }
+            });
+        }
+    };
+
     return (
         <section className="container">
             <h2>Пошук книжок</h2>
@@ -88,10 +145,9 @@ const Books = ({login}) => {
                 />
             </div>
 
-            {login === "admin" ?  <Button className="mb-3" variant="primary" onClick={() => setShowModal(true)}>
+            {login === "admin" && isLoggedIn ?  <Button className="mb-3" variant="primary" onClick={() => setShowModal(true)}>
                 Додати книгу
             </Button> : null}
-
 
             <Modal show={showModal} onHide={() => setShowModal(false)}>
                 <Modal.Header closeButton>
@@ -151,6 +207,13 @@ const Books = ({login}) => {
                                     <div className="card-body">
                                         <h5 className="card-title">{book.title}</h5>
                                         <p className="card-text">Рейтинг: {book.rating}</p>
+                                        <p>Лайки: {book.likes}</p>
+                                        <p>Збереження: {book.saves}</p>
+                                        <button onClick={() => toggleLike(book.id, 'like')}>👍 Лайк</button>
+                                        <button onClick={() => toggleLike(book.id, 'unlike')}>👎 Відмінити лайк</button>
+                                        <button onClick={() => toggleSave(book.id, 'save')}>💾 Зберегти</button>
+                                        <button onClick={() => toggleSave(book.id, 'unsave')}>❌ Відмінити збереження
+                                        </button>
                                     </div>
                                 </div>
                             </div>

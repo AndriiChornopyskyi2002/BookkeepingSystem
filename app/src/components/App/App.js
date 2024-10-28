@@ -62,7 +62,7 @@ const App = () => {
                         <Route path="/" element={<About />} />
                         <Route path="/profile" element={<Profile setTokenExpiry={setTokenExpiry} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} login={login} setLogin={setLogin} />} />
                         {login === "admin" && isLoggedIn ? <Route path="/users" element={<Users />} /> : null }
-                        <Route path="/books" element={<Books login={login} />} />
+                        <Route path="/books" element={<Books login={login} isLoggedIn={isLoggedIn} />} />
                     </Routes>
                 </div>
                 <Footer />
