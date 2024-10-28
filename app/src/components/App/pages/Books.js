@@ -76,9 +76,12 @@ const Books = ({login, isLoggedIn}) => {
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const toggleLike = async (bookId, action) => {
-        if(isLoggedIn) {
+        if (isLoggedIn) {
             try {
-                const response = await axios.post(`http://localhost:5000/book/${bookId}/like`, { action });
+                const response = await axios.post(`http://localhost:5000/book/${bookId}/like`, {
+                    action,
+                    user_login: login  // Додаємо логін користувача
+                });
                 const updatedBooks = books.map(book =>
                     book.id === bookId ? { ...book, likes: response.data.likes } : book
                 );
@@ -94,8 +97,7 @@ const Books = ({login, isLoggedIn}) => {
                 didOpen: () => {
                     const link = document.getElementById('go-to-profile');
                     link.addEventListener('click', (e) => {
-                        e.preventDefault(); // Запобігаємо переходу за замовчуванням
-                        // Перехід на роут profile
+                        e.preventDefault();
                         window.location.href = '/profile';
                     });
                 }

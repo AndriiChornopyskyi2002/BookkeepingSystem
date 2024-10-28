@@ -14,18 +14,30 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your_secret_key'  # Change this to a strong secret key
 db = SQLAlchemy(app)
 
-
 # Модель користувача
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
 
+# Модель для лайків
+class Like(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_login = db.Column(db.String(80), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
+
+# Модель книги
+class Book(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(120), nullable=False)
+    rating = db.Column(db.Float, nullable=False)
+    image = db.Column(db.String(255), nullable=False)
+    likes = db.Column(db.Integer, default=0)
+    saves = db.Column(db.Integer, default=0)
 
 # Створення таблиці
 with app.app_context():
     db.create_all()
-
 
 # Генерація токена
 def generate_token(user_id):
@@ -41,7 +53,6 @@ def generate_token(user_id):
 
     return token, refresh_token
 
-
 # Маршрут для входу
 @app.route('/login', methods=['POST'])
 def login():
@@ -56,7 +67,6 @@ def login():
         }), 200
     return jsonify({"message": "Invalid login or password"}), 401
 
-
 # Маршрут для реєстрації
 @app.route('/register', methods=['POST'])
 def register():
@@ -70,7 +80,6 @@ def register():
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"message": "Registration successful"}), 201
-
 
 # Маршрут для отримання нового токена
 @app.route('/refresh', methods=['POST'])
@@ -91,7 +100,6 @@ def refresh():
     except jwt.InvalidTokenError:
         return jsonify({"message": "Invalid refresh token"}), 401
 
-
 # Маршрут для отримання списку користувачів
 @app.route('/users', methods=['GET'])
 def get_users():
@@ -103,22 +111,6 @@ def get_users():
             "login": user.login
         })
     return jsonify(users_list), 200
-
-
-# Модель книги
-class Book(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(120), nullable=False)
-    rating = db.Column(db.Float, nullable=False)
-    image = db.Column(db.String(255), nullable=False)
-    likes = db.Column(db.Integer, default=0)
-    saves = db.Column(db.Integer, default=0)
-
-
-# Створення таблиці
-with app.app_context():
-    db.create_all()
-
 
 # Маршрут для додавання нової книги
 @app.route('/add_book', methods=['POST'])
@@ -132,7 +124,6 @@ def add_book():
     db.session.commit()
     return jsonify({"message": "Book added successfully"}), 201
 
-
 # Маршрут для отримання списку книг
 @app.route('/books', methods=['GET'])
 def get_books():
@@ -144,11 +135,12 @@ def get_books():
             "rating": book.rating,
             "image": book.image,
             "likes": book.likes,
-            "saves": book.saves  # Передаємо кількість лайків
+            "saves": book.saves
         }
         for book in books
     ]
-    return jsonify(books_list)
+    return jsonify(books_list), 200
+
 # Маршрут для додавання або видалення лайка
 @app.route('/book/<int:book_id>/like', methods=['POST'])
 def toggle_like(book_id):
@@ -157,14 +149,20 @@ def toggle_like(book_id):
         return jsonify({"message": "Book not found"}), 404
 
     action = request.json.get('action')
+    user_login = request.json.get('user_login')  # Отримуємо логін користувача
+
     if action == 'like':
         book.likes += 1
+        new_like = Like(user_login=user_login, book_id=book_id)
+        db.session.add(new_like)
     elif action == 'unlike':
         book.likes -= 1
+        like_to_remove = Like.query.filter_by(user_login=user_login, book_id=book_id).first()
+        if like_to_remove:
+            db.session.delete(like_to_remove)
 
     db.session.commit()
     return jsonify({"message": "Like updated", "likes": book.likes}), 200
-
 
 # Маршрут для додавання або видалення збереження
 @app.route('/book/<int:book_id>/save', methods=['POST'])
