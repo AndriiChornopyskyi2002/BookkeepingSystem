@@ -3,7 +3,10 @@ import axios from 'axios';
 import { Modal, Button } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { TailSpin } from 'react-loader-spinner';
-import Swal from "sweetalert2"; // Якщо ви використовуєте TailSpin
+import Swal from "sweetalert2";
+import NumberFlow from "@number-flow/react";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 
 const Books = ({login, isLoggedIn}) => {
     const [books, setBooks] = useState([]);
@@ -254,18 +257,23 @@ const Books = ({login, isLoggedIn}) => {
                                     <div className="card-body">
                                         <h5 className="card-title">{book.title}</h5>
                                         <p className="card-text">Рейтинг: {book.rating}</p>
-                                        <p>Лайки: {book.likes}</p>
+                                        <div>
+                                            {isLoggedIn && (
+                                                <>
+                                                    <div className="d-flex align-items-center">
+                                                        <NumberFlow value={book.likes} trend={true} />
+                                                        <button
+                                                            className="btn p-0"
+                                                            disabled={loadingBookId === book.id}
+                                                            onClick={() => toggleLike(book.id)}
+                                                        >
+                                                            {likesStatus[book.id] ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon />}
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
                                         <p>Збереження: {book.saves}</p>
-                                        {isLoggedIn && (
-                                            <>
-                                                <button
-                                                    disabled={loadingBookId === book.id}
-                                                    onClick={() => toggleLike(book.id)}
-                                                >
-                                                    {likesStatus[book.id] ? '❌ Забрати лайк' : '👍 Лайк'}
-                                                </button>
-                                            </>
-                                        )}
                                         <button onClick={() => toggleSave(book.id, 'save')}>💾 Зберегти</button>
                                         <button onClick={() => toggleSave(book.id, 'unsave')}>❌ Відмінити збереження
                                         </button>
