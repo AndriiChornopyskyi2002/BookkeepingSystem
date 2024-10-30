@@ -61,6 +61,17 @@ const Header = ({ login, isLoggedIn }) => {
                                 Пошук книжок
                             </Link>
                         </li>
+                        {isLoggedIn && (
+                            <li className="nav-item">
+                                <Link
+                                    className="nav-link text-white"
+                                    to="/savedBooks"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Збережені книги
+                                </Link>
+                            </li>
+                        )}
                     </ul>
                 </nav>
             </div>
