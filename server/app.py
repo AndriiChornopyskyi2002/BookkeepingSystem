@@ -193,5 +193,30 @@ def toggle_save(book_id):
     action = request.json.get('action')
     return toggle_action(book_id, action, Save, 'saves')
 
+
+# Маршрут для отримання збережених книг авторизованого користувача
+@app.route('/user/saved-books', methods=['GET'])
+def get_saved_books():
+    token = request.headers.get('Authorization').split(" ")[1]  # Отримуємо токен з заголовка
+    try:
+        decoded = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        user_login = User.query.get(decoded['user_id']).login  # Отримуємо логін користувача
+        saved_books = Save.query.filter_by(user_login=user_login).all()  # Отримуємо збережені книги
+
+        saved_books_list = []
+        for saved in saved_books:
+            book = Book.query.get(saved.book_id)
+            saved_books_list.append({
+                "id": book.id,
+                "title": book.title,
+                "rating": book.rating,
+                "image": book.image
+            })
+        return jsonify(saved_books_list), 200
+    except jwt.ExpiredSignatureError:
+        return jsonify({"message": "Token expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"message": "Invalid token"}), 401
+
 if __name__ == '__main__':
     app.run(debug=True)
