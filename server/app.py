@@ -26,6 +26,12 @@ class Like(db.Model):
     user_login = db.Column(db.String(80), nullable=False)
     book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
 
+# Модель для збереження
+class Save(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_login = db.Column(db.String(80), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
+
 # Модель книги
 class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -149,6 +155,14 @@ def check_user_like(book_id):
 
     return jsonify({"liked": liked}), 200
 
+@app.route('/book/<int:book_id>/user-save', methods=['GET'])
+def check_user_save(book_id):
+    user_login = request.args.get('user_login')  # Отримуємо логін користувача
+    save = Save.query.filter_by(user_login=user_login, book_id=book_id).first()
+    saved = save is not None  # true, якщо лайк існує
+
+    return jsonify({"saved": saved}), 200
+
 @app.route('/book/<int:book_id>/like', methods=['POST'])
 def toggle_like(book_id):
     book = Book.query.get(book_id)
@@ -171,7 +185,6 @@ def toggle_like(book_id):
     db.session.commit()
     return jsonify({"message": "Like updated", "likes": book.likes}), 200
 
-# Маршрут для додавання або видалення збереження
 @app.route('/book/<int:book_id>/save', methods=['POST'])
 def toggle_save(book_id):
     book = Book.query.get(book_id)
@@ -179,10 +192,17 @@ def toggle_save(book_id):
         return jsonify({"message": "Book not found"}), 404
 
     action = request.json.get('action')
+    user_login = request.json.get('user_login')  # Отримуємо логін користувача
+
     if action == 'save':
         book.saves += 1
+        new_save = Save(user_login=user_login, book_id=book_id)
+        db.session.add(new_save)
     elif action == 'unsave':
         book.saves -= 1
+        save_to_remove = Save.query.filter_by(user_login=user_login, book_id=book_id).first()
+        if save_to_remove:
+            db.session.delete(save_to_remove)
 
     db.session.commit()
     return jsonify({"message": "Save updated", "saves": book.saves}), 200

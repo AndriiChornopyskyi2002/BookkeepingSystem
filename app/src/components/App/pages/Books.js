@@ -77,6 +77,7 @@ const Books = ({login, isLoggedIn}) => {
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const [likesStatus, setLikesStatus] = useState({});
+    const [savesStatus, setSavesStatus] = useState({});
 
     const previousBooksRef = useRef();
 
@@ -103,6 +104,36 @@ const Books = ({login, isLoggedIn}) => {
         // Виконуємо запит тільки якщо поточний `currentBooks` відрізняється від попереднього
         if (JSON.stringify(previousBooksRef.current) !== JSON.stringify(currentBooks)) {
             fetchLikesStatus().then(() => console.log("Success"));
+            previousBooksRef.current = currentBooks; // Оновлюємо попередній стан книг
+        }
+    }, [currentBooks, login, isLoggedIn]);
+
+    useEffect(() => {
+        const fetchSavesStatus = async () => {
+            if (isLoggedIn && currentBooks.length > 0) {
+                const savesPromises = currentBooks.map(async (book) => {
+                    const response = await axios.get(`http://localhost:5000/book/${book.id}/user-save`, {
+                        params: { user_login: login }
+                    });
+                    return { bookId: book.id, saved: response.data.saved };
+                });
+
+                const savesData = await Promise.all(savesPromises);
+                const updatedSavesStatus = savesData.reduce((acc, { bookId, saved }) => {
+                    acc[bookId] = saved;
+                    return acc;
+                }, {});
+                setSavesStatus(updatedSavesStatus);
+                setLoading(false);
+            }
+        };
+
+        // Виконуємо запит при першому рендерингу
+        fetchSavesStatus().then(() => console.log("Fetched saves status on mount"));
+
+        // Виконуємо запит тільки якщо поточний `currentBooks` відрізняється від попереднього
+        if (JSON.stringify(previousBooksRef.current) !== JSON.stringify(currentBooks)) {
+            fetchSavesStatus().then(() => console.log("Fetched saves status on books update"));
             previousBooksRef.current = currentBooks; // Оновлюємо попередній стан книг
         }
     }, [currentBooks, login, isLoggedIn]);
@@ -153,16 +184,33 @@ const Books = ({login, isLoggedIn}) => {
         setLoadingBookId(null); // Очищаємо стан, коли запит завершено
     };
 
-    const toggleSave = async (bookId, action) => {
-        if(isLoggedIn) {
+    const toggleSave = async (bookId) => {
+        setLoadingBookId(bookId); // Встановлюємо поточний `bookId` для кнопки, яку натиснули
+
+        if (isLoggedIn) {
             try {
-                const response = await axios.post(`http://localhost:5000/book/${bookId}/save`, { action });
+                const userSaveResponse = await axios.get(`http://localhost:5000/book/${bookId}/user-save`, {
+                    params: { user_login: login }
+                });
+
+                const userSaved = userSaveResponse.data.saved;
+                const action = userSaved ? 'unsave' : 'save';
+
+                const response = await axios.post(`http://localhost:5000/book/${bookId}/save`, {
+                    action,
+                    user_login: login
+                });
+
+                // Оновлення статусу збереження
+                setSavesStatus(prev => ({ ...prev, [bookId]: !userSaved }));
+
+                // Оновлення книг
                 const updatedBooks = books.map(book =>
                     book.id === bookId ? { ...book, saves: response.data.saves } : book
                 );
                 setBooks(updatedBooks);
             } catch (error) {
-                console.error("Error updating save:", error);
+                console.error("Error updating save status:", error);
             }
         } else {
             Swal.fire({
@@ -172,13 +220,14 @@ const Books = ({login, isLoggedIn}) => {
                 didOpen: () => {
                     const link = document.getElementById('go-to-profile');
                     link.addEventListener('click', (e) => {
-                        e.preventDefault(); // Запобігаємо переходу за замовчуванням
-                        // Перехід на роут profile
+                        e.preventDefault();
                         window.location.href = '/profile';
                     });
                 }
             });
         }
+
+        setLoadingBookId(null); // Очищаємо стан, коли запит завершено
     };
 
     return (
@@ -261,22 +310,30 @@ const Books = ({login, isLoggedIn}) => {
                                             {isLoggedIn && (
                                                 <>
                                                     <div className="d-flex align-items-center">
-                                                        <NumberFlow value={book.likes} trend={true} />
+                                                        <NumberFlow value={book.likes} trend={true}/>
                                                         <button
                                                             className="btn p-0"
                                                             disabled={loadingBookId === book.id}
                                                             onClick={() => toggleLike(book.id)}
                                                         >
-                                                            {likesStatus[book.id] ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon />}
+                                                            {likesStatus[book.id] ? <FavoriteIcon color="error"/> :
+                                                                <FavoriteBorderIcon/>}
+                                                        </button>
+                                                    </div>
+                                                    <div className="d-flex align-items-center">
+                                                        <NumberFlow value={book.saves} trend={true}/>
+                                                        <button
+                                                            className="btn p-0"
+                                                            disabled={loadingBookId === book.id}
+                                                            onClick={() => toggleSave(book.id)}
+                                                        >
+                                                            {savesStatus[book.id] ? <h1>сохр</h1> :
+                                                                <h1>не сохр</h1>}
                                                         </button>
                                                     </div>
                                                 </>
                                             )}
                                         </div>
-                                        <p>Збереження: {book.saves}</p>
-                                        <button onClick={() => toggleSave(book.id, 'save')}>💾 Зберегти</button>
-                                        <button onClick={() => toggleSave(book.id, 'unsave')}>❌ Відмінити збереження
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -292,7 +349,7 @@ const Books = ({login, isLoggedIn}) => {
                         {Array.from({length: totalPages}, (_, index) => (
                             <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
                                 <button className="page-link" onClick={() => paginate(index + 1)}>
-                                    {index + 1}
+                                {index + 1}
                                 </button>
                             </li>
                         ))}
