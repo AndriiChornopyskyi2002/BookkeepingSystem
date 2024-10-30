@@ -7,6 +7,7 @@ import Profile from "./pages/Profile";
 import Users from "./pages/Users";
 import Books from "./pages/Books";
 import axios from "axios";
+import SavedBooks from "./pages/SavedBooks";
 
 const App = () => {
     const [login, setLogin] = useState('');
@@ -63,6 +64,7 @@ const App = () => {
                         <Route path="/profile" element={<Profile setTokenExpiry={setTokenExpiry} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} login={login} setLogin={setLogin} />} />
                         {login === "admin" && isLoggedIn ? <Route path="/users" element={<Users />} /> : null }
                         <Route path="/books" element={<Books login={login} isLoggedIn={isLoggedIn} />} />
+                        {isLoggedIn ? <Route path="/savedBooks" element={ <SavedBooks/> } /> : null }
                     </Routes>
                 </div>
                 <Footer />

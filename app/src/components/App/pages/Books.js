@@ -6,7 +6,9 @@ import { TailSpin } from 'react-loader-spinner';
 import Swal from "sweetalert2";
 import NumberFlow from "@number-flow/react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import SaveIcon from "@mui/icons-material/Save";
+import {Star} from "@mui/icons-material";
+import {red, yellow} from "@mui/material/colors";
 
 const Books = ({login, isLoggedIn}) => {
     const [books, setBooks] = useState([]);
@@ -82,89 +84,86 @@ const Books = ({login, isLoggedIn}) => {
     const previousBooksRef = useRef();
 
     useEffect(() => {
-        const fetchLikesStatus = async () => {
-            if (isLoggedIn && currentBooks.length > 0) {
-                const likesPromises = currentBooks.map(async (book) => {
-                    const response = await axios.get(`http://localhost:5000/book/${book.id}/user-like`, {
-                        params: { user_login: login }
+        const fetchStatus = async () => {
+            if (currentBooks.length > 0) {
+                try {
+                    // Отримання статусу вподобань
+                    const likesPromises = currentBooks.map(async (book) => {
+                        const response = await axios.get(`http://localhost:5000/book/${book.id}/user-like`, {
+                            params: { user_login: login }
+                        });
+                        return { bookId: book.id, liked: response.data.liked };
                     });
-                    return { bookId: book.id, liked: response.data.liked };
-                });
 
-                const likesData = await Promise.all(likesPromises);
-                const updatedLikesStatus = likesData.reduce((acc, { bookId, liked }) => {
-                    acc[bookId] = liked;
-                    return acc;
-                }, {});
-                setLikesStatus(updatedLikesStatus);
-                setLoading(false);
+                    const likesData = await Promise.all(likesPromises);
+                    const updatedLikesStatus = likesData.reduce((acc, { bookId, liked }) => {
+                        acc[bookId] = liked;
+                        return acc;
+                    }, {});
+                    setLikesStatus(updatedLikesStatus);
+
+                    // Отримання статусу збережень
+                    const savesPromises = currentBooks.map(async (book) => {
+                        const response = await axios.get(`http://localhost:5000/book/${book.id}/user-save`, {
+                            params: { user_login: login }
+                        });
+                        return { bookId: book.id, saved: response.data.saved };
+                    });
+
+                    const savesData = await Promise.all(savesPromises);
+                    const updatedSavesStatus = savesData.reduce((acc, { bookId, saved }) => {
+                        acc[bookId] = saved;
+                        return acc;
+                    }, {});
+                    setSavesStatus(updatedSavesStatus);
+
+                    // Встановлюємо loading в false лише після успішного завершення обох запитів
+                    setLoading(false);
+                } catch (error) {
+                    console.error("Error fetching status:", error);
+                    // Обробка помилки, якщо це необхідно
+                }
             }
         };
 
         // Виконуємо запит тільки якщо поточний `currentBooks` відрізняється від попереднього
         if (JSON.stringify(previousBooksRef.current) !== JSON.stringify(currentBooks)) {
-            fetchLikesStatus().then(() => console.log("Success"));
+            fetchStatus().then(() => console.log("Success"));
             previousBooksRef.current = currentBooks; // Оновлюємо попередній стан книг
         }
     }, [currentBooks, login, isLoggedIn]);
 
-    useEffect(() => {
-        const fetchSavesStatus = async () => {
-            if (isLoggedIn && currentBooks.length > 0) {
-                const savesPromises = currentBooks.map(async (book) => {
-                    const response = await axios.get(`http://localhost:5000/book/${book.id}/user-save`, {
-                        params: { user_login: login }
-                    });
-                    return { bookId: book.id, saved: response.data.saved };
-                });
-
-                const savesData = await Promise.all(savesPromises);
-                const updatedSavesStatus = savesData.reduce((acc, { bookId, saved }) => {
-                    acc[bookId] = saved;
-                    return acc;
-                }, {});
-                setSavesStatus(updatedSavesStatus);
-                setLoading(false);
-            }
-        };
-
-        // Виконуємо запит при першому рендерингу
-        fetchSavesStatus().then(() => console.log("Fetched saves status on mount"));
-
-        // Виконуємо запит тільки якщо поточний `currentBooks` відрізняється від попереднього
-        if (JSON.stringify(previousBooksRef.current) !== JSON.stringify(currentBooks)) {
-            fetchSavesStatus().then(() => console.log("Fetched saves status on books update"));
-            previousBooksRef.current = currentBooks; // Оновлюємо попередній стан книг
-        }
-    }, [currentBooks, login, isLoggedIn]);
 
     const [loadingBookId, setLoadingBookId] = useState(null);
 
-    const toggleLike = async (bookId) => {
+    const toggleAction = async (bookId, actionType) => {
         setLoadingBookId(bookId); // Встановлюємо поточний `bookId` для кнопки, яку натиснули
 
         if (isLoggedIn) {
             try {
-                // Перевірка, чи є лайк від користувача для цієї книги
-                const userLikeResponse = await axios.get(`http://localhost:5000/book/${bookId}/user-like`, {
+                // Перевірка, чи є лайк або збереження від користувача для цієї книги
+                const userActionResponse = await axios.get(`http://localhost:5000/book/${bookId}/user-${actionType}`, {
                     params: { user_login: login }
                 });
 
-                const userLiked = userLikeResponse.data.liked; // true, якщо користувач вже поставив лайк
-                const action = userLiked ? 'unlike' : 'like'; // Визначення дії
+                const userActioned = userActionResponse.data[actionType === 'like' ? 'liked' : 'saved']; // true, якщо користувач вже виконав дію
+                const action = userActioned ? `un${actionType}` : actionType; // Визначення дії
 
-                // Виконання запиту для оновлення лайка
-                const response = await axios.post(`http://localhost:5000/book/${bookId}/like`, {
+                // Виконання запиту для оновлення статусу
+                const response = await axios.post(`http://localhost:5000/book/${bookId}/${actionType}`, {
                     action,
                     user_login: login
                 });
 
+                // Оновлення статусу дії (лайк або збереження)
                 const updatedBooks = books.map(book =>
-                    book.id === bookId ? { ...book, likes: response.data.likes } : book
+                    book.id === bookId ? { ...book, [actionType === 'like' ? 'likes' : 'saves']: response.data[actionType === 'like' ? 'likes' : 'saves'] } : book
                 );
                 setBooks(updatedBooks);
+                setSavesStatus(prev => ({ ...prev, [bookId]: action === 'save' }));
+
             } catch (error) {
-                console.error("Error updating like:", error);
+                console.error(`Error updating ${actionType} status:`, error);
             }
         } else {
             Swal.fire({
@@ -184,51 +183,8 @@ const Books = ({login, isLoggedIn}) => {
         setLoadingBookId(null); // Очищаємо стан, коли запит завершено
     };
 
-    const toggleSave = async (bookId) => {
-        setLoadingBookId(bookId); // Встановлюємо поточний `bookId` для кнопки, яку натиснули
-
-        if (isLoggedIn) {
-            try {
-                const userSaveResponse = await axios.get(`http://localhost:5000/book/${bookId}/user-save`, {
-                    params: { user_login: login }
-                });
-
-                const userSaved = userSaveResponse.data.saved;
-                const action = userSaved ? 'unsave' : 'save';
-
-                const response = await axios.post(`http://localhost:5000/book/${bookId}/save`, {
-                    action,
-                    user_login: login
-                });
-
-                // Оновлення статусу збереження
-                setSavesStatus(prev => ({ ...prev, [bookId]: !userSaved }));
-
-                // Оновлення книг
-                const updatedBooks = books.map(book =>
-                    book.id === bookId ? { ...book, saves: response.data.saves } : book
-                );
-                setBooks(updatedBooks);
-            } catch (error) {
-                console.error("Error updating save status:", error);
-            }
-        } else {
-            Swal.fire({
-                title: "Помилка!",
-                html: 'Авторизуйтесь, щоб виконати теперішню дію <a href="#" id="go-to-profile" style="color: blue; text-decoration: underline; cursor: pointer;">тут</a>',
-                icon: "error",
-                didOpen: () => {
-                    const link = document.getElementById('go-to-profile');
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        window.location.href = '/profile';
-                    });
-                }
-            });
-        }
-
-        setLoadingBookId(null); // Очищаємо стан, коли запит завершено
-    };
+    const toggleLike = (bookId) => toggleAction(bookId, 'like');
+    const toggleSave = (bookId) => toggleAction(bookId, 'save');
 
     return (
         <section className="container">
@@ -301,38 +257,52 @@ const Books = ({login, isLoggedIn}) => {
                         currentBooks.map((book) => (
                             <div key={book.id} className="col-md-4">
                                 <div className="card mb-4 shadow-sm">
-                                    <img style={{width: '100%', height: 'auto'}} src={book.image}
-                                         className="card-img-top" alt={book.title}/>
+                                    <img
+                                        style={{width: '100%'}}
+                                        src={book.image}
+                                        className="card-img-top"
+                                        alt={book.title}
+                                        onError={(e) => {
+                                            e.currentTarget.onerror = null; // Запобігання повторним викликам
+                                            e.currentTarget.src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgPaQLyoT4KRyKaYf6u4LuPnsJRl-yVn91iA&s'; // Можна замінити на зображення за замовчуванням
+                                        }}
+                                    />
+                                    {book.image ? null : (
+                                        <div className="card-img-top text-center">
+                                            <span>Зображення не доступне</span>
+                                        </div>
+                                    )}
                                     <div className="card-body">
                                         <h5 className="card-title">{book.title}</h5>
-                                        <p className="card-text">Рейтинг: {book.rating}</p>
-                                        <div>
-                                            {isLoggedIn && (
-                                                <>
-                                                    <div className="d-flex align-items-center">
-                                                        <NumberFlow value={book.likes} trend={true}/>
-                                                        <button
-                                                            className="btn p-0"
-                                                            disabled={loadingBookId === book.id}
-                                                            onClick={() => toggleLike(book.id)}
-                                                        >
-                                                            {likesStatus[book.id] ? <FavoriteIcon color="error"/> :
-                                                                <FavoriteBorderIcon/>}
-                                                        </button>
-                                                    </div>
-                                                    <div className="d-flex align-items-center">
-                                                        <NumberFlow value={book.saves} trend={true}/>
-                                                        <button
-                                                            className="btn p-0"
-                                                            disabled={loadingBookId === book.id}
-                                                            onClick={() => toggleSave(book.id)}
-                                                        >
-                                                            {savesStatus[book.id] ? <h1>сохр</h1> :
-                                                                <h1>не сохр</h1>}
-                                                        </button>
-                                                    </div>
-                                                </>
-                                            )}
+                                        <div className="d-flex">
+                                            <p className="card-text">{book.rating}</p>
+                                            <Star sx={{color: yellow[500]}}/>
+
+                                            <>
+                                                <div>
+                                                    <NumberFlow value={book.likes} trend={true}/>
+                                                    <button
+                                                        className="p-0 border-0 bg-transparent"
+                                                        disabled={loadingBookId === book.id}
+                                                        onClick={() => toggleLike(book.id)}
+                                                    >
+                                                        {likesStatus[book.id] ?
+                                                            <FavoriteIcon sx={{color: red[500]}}/> :
+                                                            <FavoriteIcon color="disabled"/>}
+                                                    </button>
+                                                </div>
+                                                <div>
+                                                    <NumberFlow value={book.saves} trend={true}/>
+                                                    <button
+                                                        className="p-0 border-0 bg-transparent"
+                                                        disabled={loadingBookId === book.id}
+                                                        onClick={() => toggleSave(book.id)}
+                                                    >
+                                                        {savesStatus[book.id] ? <SaveIcon color="primary"/> :
+                                                            <SaveIcon color="disabled"/>}
+                                                    </button>
+                                                </div>
+                                            </>
                                         </div>
                                     </div>
                                 </div>
@@ -349,7 +319,7 @@ const Books = ({login, isLoggedIn}) => {
                         {Array.from({length: totalPages}, (_, index) => (
                             <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
                                 <button className="page-link" onClick={() => paginate(index + 1)}>
-                                {index + 1}
+                                    {index + 1}
                                 </button>
                             </li>
                         ))}

@@ -147,65 +147,51 @@ def get_books():
     ]
     return jsonify(books_list), 200
 
+def check_user_action(book_id, user_login, model):
+    action = model.query.filter_by(user_login=user_login, book_id=book_id).first()
+    return action is not None
+
 @app.route('/book/<int:book_id>/user-like', methods=['GET'])
 def check_user_like(book_id):
     user_login = request.args.get('user_login')  # Отримуємо логін користувача
-    like = Like.query.filter_by(user_login=user_login, book_id=book_id).first()
-    liked = like is not None  # true, якщо лайк існує
-
+    liked = check_user_action(book_id, user_login, Like)
     return jsonify({"liked": liked}), 200
 
 @app.route('/book/<int:book_id>/user-save', methods=['GET'])
 def check_user_save(book_id):
     user_login = request.args.get('user_login')  # Отримуємо логін користувача
-    save = Save.query.filter_by(user_login=user_login, book_id=book_id).first()
-    saved = save is not None  # true, якщо лайк існує
-
+    saved = check_user_action(book_id, user_login, Save)
     return jsonify({"saved": saved}), 200
+
+def toggle_action(book_id, action, model, field):
+    book = Book.query.get(book_id)
+    if not book:
+        return jsonify({"message": "Book not found"}), 404
+
+    user_login = request.json.get('user_login')  # Отримуємо логін користувача
+
+    if action == 'like' or action == 'save':
+        setattr(book, field, getattr(book, field) + 1)
+        new_action = model(user_login=user_login, book_id=book_id)
+        db.session.add(new_action)
+    elif action == 'unlike' or action == 'unsave':
+        setattr(book, field, getattr(book, field) - 1)
+        action_to_remove = model.query.filter_by(user_login=user_login, book_id=book_id).first()
+        if action_to_remove:
+            db.session.delete(action_to_remove)
+
+    db.session.commit()
+    return jsonify({"message": f"{field.capitalize()} updated", field: getattr(book, field)}), 200
 
 @app.route('/book/<int:book_id>/like', methods=['POST'])
 def toggle_like(book_id):
-    book = Book.query.get(book_id)
-    if not book:
-        return jsonify({"message": "Book not found"}), 404
-
     action = request.json.get('action')
-    user_login = request.json.get('user_login')  # Отримуємо логін користувача
-
-    if action == 'like':
-        book.likes += 1
-        new_like = Like(user_login=user_login, book_id=book_id)
-        db.session.add(new_like)
-    elif action == 'unlike':
-        book.likes -= 1
-        like_to_remove = Like.query.filter_by(user_login=user_login, book_id=book_id).first()
-        if like_to_remove:
-            db.session.delete(like_to_remove)
-
-    db.session.commit()
-    return jsonify({"message": "Like updated", "likes": book.likes}), 200
+    return toggle_action(book_id, action, Like, 'likes')
 
 @app.route('/book/<int:book_id>/save', methods=['POST'])
 def toggle_save(book_id):
-    book = Book.query.get(book_id)
-    if not book:
-        return jsonify({"message": "Book not found"}), 404
-
     action = request.json.get('action')
-    user_login = request.json.get('user_login')  # Отримуємо логін користувача
-
-    if action == 'save':
-        book.saves += 1
-        new_save = Save(user_login=user_login, book_id=book_id)
-        db.session.add(new_save)
-    elif action == 'unsave':
-        book.saves -= 1
-        save_to_remove = Save.query.filter_by(user_login=user_login, book_id=book_id).first()
-        if save_to_remove:
-            db.session.delete(save_to_remove)
-
-    db.session.commit()
-    return jsonify({"message": "Save updated", "saves": book.saves}), 200
+    return toggle_action(book_id, action, Save, 'saves')
 
 if __name__ == '__main__':
     app.run(debug=True)
