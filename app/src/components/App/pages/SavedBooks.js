@@ -38,7 +38,7 @@ const SavedBooks = () => {
             /></div> : <section className="container">
                 <h2>Збережені книги</h2>
                 {savedBooks.length > 0 ? (
-                    <ul className="row">
+                    <div className="row">
                         {savedBooks.map(book => (
                             <div key={book.id} className="col-md-4">
                                 <div className="card mb-4 shadow-sm">
@@ -67,7 +67,7 @@ const SavedBooks = () => {
                                 </div>
                             </div>
                         ))}
-                    </ul>
+                    </div>
                 ) : (
                     <p>У вас немає збережених книг.</p>
                 )}
