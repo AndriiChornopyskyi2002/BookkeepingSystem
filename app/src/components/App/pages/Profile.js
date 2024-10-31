@@ -7,7 +7,7 @@ const Profile = ({ login, setLogin, isLoggedIn, setIsLoggedIn, setTokenExpiry })
 
     const handleAuth = async (type) => {
         try {
-            const url = `http://localhost:5000/${type}`;
+            const url = `https://bookkeepingsystem.onrender.com/${type}`;
             const response = await axios.post(url, {
                 login,
                 password

@@ -19,7 +19,7 @@ const App = () => {
         const refreshToken = localStorage.getItem('refresh_token');
         if (refreshToken) {
             try {
-                const response = await axios.post('http://localhost:5000/refresh', { refresh_token: refreshToken });
+                const response = await axios.post('https://bookkeepingsystem.onrender.com/refresh', { refresh_token: refreshToken });
                 localStorage.setItem('access_token', response.data.access_token);
                 localStorage.setItem('refresh_token', response.data.refresh_token);
 

@@ -10,7 +10,7 @@ const Users = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/users');
+                const response = await axios.get('https://bookkeepingsystem.onrender.com/users');
                 setUsers(response.data); // Зберігаємо користувачів в стані
                 setLoading(false); // Вимикаємо стан завантаження
             } catch (error) {
@@ -19,7 +19,7 @@ const Users = () => {
             }
         };
 
-        fetchUsers(); // Викликаємо функцію при першому рендері компонента
+        fetchUsers().then(() => console.log("success")); // Викликаємо функцію при першому рендері компонента
     }, []);
 
     return (

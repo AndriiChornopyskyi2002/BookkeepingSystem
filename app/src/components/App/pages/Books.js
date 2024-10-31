@@ -23,7 +23,7 @@ const Books = ({login, isLoggedIn}) => {
     // Функція для отримання списку книг
     const fetchBooks = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/books');
+            const response = await axios.get('https://bookkeepingsystem.onrender.com/books');
             setBooks(response.data);
         } catch (error) {
             console.error('Error fetching books:', error);
@@ -43,7 +43,7 @@ const Books = ({login, isLoggedIn}) => {
         }
 
         try {
-            const response = await axios.post('http://localhost:5000/add_book', newBook, {
+            const response = await axios.post('https://bookkeepingsystem.onrender.com/add_book', newBook, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -85,7 +85,7 @@ const Books = ({login, isLoggedIn}) => {
                 try {
                     // Отримання статусу вподобань
                     const likesPromises = currentBooks.map(async (book) => {
-                        const response = await axios.get(`http://localhost:5000/book/${book.id}/user-like`, {
+                        const response = await axios.get(`https://bookkeepingsystem.onrender.com/book/${book.id}/user-like`, {
                             params: { user_login: login }
                         });
                         return { bookId: book.id, liked: response.data.liked };
@@ -100,7 +100,7 @@ const Books = ({login, isLoggedIn}) => {
 
                     // Отримання статусу збережень
                     const savesPromises = currentBooks.map(async (book) => {
-                        const response = await axios.get(`http://localhost:5000/book/${book.id}/user-save`, {
+                        const response = await axios.get(`https://bookkeepingsystem.onrender.com/book/${book.id}/user-save`, {
                             params: { user_login: login }
                         });
                         return { bookId: book.id, saved: response.data.saved };
@@ -138,7 +138,7 @@ const Books = ({login, isLoggedIn}) => {
         if (isLoggedIn) {
             try {
                 // Перевірка, чи є лайк або збереження від користувача для цієї книги
-                const userActionResponse = await axios.get(`http://localhost:5000/book/${bookId}/user-${actionType}`, {
+                const userActionResponse = await axios.get(`https://bookkeepingsystem.onrender.com/book/${bookId}/user-${actionType}`, {
                     params: { user_login: login }
                 });
 
@@ -146,7 +146,7 @@ const Books = ({login, isLoggedIn}) => {
                 const action = userActioned ? `un${actionType}` : actionType; // Визначення дії
 
                 // Виконання запиту для оновлення статусу
-                const response = await axios.post(`http://localhost:5000/book/${bookId}/${actionType}`, {
+                const response = await axios.post(`https://bookkeepingsystem.onrender.com/book/${bookId}/${actionType}`, {
                     action,
                     user_login: login
                 });
