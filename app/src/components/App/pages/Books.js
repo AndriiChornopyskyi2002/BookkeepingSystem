@@ -120,7 +120,7 @@ const Books = ({login, isLoggedIn}) => {
                     // Встановлюємо loading в false лише після успішного завершення обох запитів
                     setLoading(false);
                 } catch (error) {
-                    console.error("Error fetching status:", error);
+                    console.error("Error fetching static:", error);
                     // Обробка помилки, якщо це необхідно
                 }
             }
