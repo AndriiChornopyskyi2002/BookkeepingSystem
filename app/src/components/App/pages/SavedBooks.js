@@ -20,12 +20,14 @@ const SavedBooks = () => {
             if (response.ok) {
                 const data = await response.json();
                 setSavedBooks(data); // Оновлюємо стан збережених книг
+                setLoading(false);
             } else {
                 console.error('Failed to fetch saved books:', response.statusText);
+                setLoading(false);
             }
         };
 
-        fetchSavedBooks().then(() => setLoading(false));
+        fetchSavedBooks().then(() => console.log("success"));
     }, []);
 
     return (
