@@ -28,14 +28,13 @@ const Books = ({login, isLoggedIn}) => {
 
             // Виводимо список посилань на зображення
             const imageLinks = response.data.map(book => book.image);
-            console.log('Посилання на зображення книг:', imageLinks);
         } catch (error) {
             console.error('Error fetching books:', error);
         }
     };
 
     useEffect(() => {
-        fetchBooks().then(() => console.log("success"));
+        fetchBooks().then(() => setLoading(false));
     }, []);
 
     const addBook = async (e) => {
