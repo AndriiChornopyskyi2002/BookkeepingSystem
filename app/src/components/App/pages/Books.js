@@ -35,7 +35,7 @@ const Books = ({login, isLoggedIn}) => {
     };
 
     useEffect(() => {
-        fetchBooks().then(() => console.log("success"));
+        fetchBooks().then(() => console.log(setLoading(false)));
     }, []);
 
     const addBook = async (e) => {
