@@ -25,9 +25,6 @@ const Books = ({login, isLoggedIn}) => {
         try {
             const response = await axios.get('http://localhost:5000/books');
             setBooks(response.data);
-
-            // Виводимо список посилань на зображення
-            const imageLinks = response.data.map(book => book.image);
         } catch (error) {
             console.error('Error fetching books:', error);
         }
