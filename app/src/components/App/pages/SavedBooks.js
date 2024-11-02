@@ -45,7 +45,7 @@ const SavedBooks = () => {
                             <div key={book.id} className="col-md-4">
                                 <div className="card mb-4 shadow-sm">
                                     <img
-                                        style={{width: '100%'}}
+                                        style={{width: '100%', height: '300px', objectFit: 'cover'}}
                                         src={book.image}
                                         className="card-img-top"
                                         alt={book.title}
