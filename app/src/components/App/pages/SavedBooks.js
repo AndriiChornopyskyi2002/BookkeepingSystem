@@ -10,7 +10,7 @@ const SavedBooks = () => {
     useEffect(() => {
         const fetchSavedBooks = async () => {
             const token = localStorage.getItem('access_token'); // Отримуємо токен доступу
-            const response = await fetch('http://localhost:5000/user/saved-books', {
+            const response = await fetch('https://bookkeepingsystem.onrender.com/user/saved-books', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`, // Додаємо токен до заголовків
