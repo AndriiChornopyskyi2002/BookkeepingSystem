@@ -1,32 +1,41 @@
 import React, { useState } from 'react';
 import { Button } from "@mui/material";
 import axios from 'axios';
+import Swal from "sweetalert2";
 
 const Profile = ({ login, setLogin, isLoggedIn, setIsLoggedIn, setTokenExpiry }) => {
     const [password, setPassword] = useState('');
 
     const handleAuth = async (type) => {
-        try {
-            const url = `https://bookkeepingsystem.onrender.com/${type}`;
-            const response = await axios.post(url, {
-                login,
-                password
-            });
-            alert(response.data.message);
+        if(password && login) {
+            try {
+                const url = `https://bookkeepingsystem.onrender.com/${type}`;
+                const response = await axios.post(url, {
+                    login,
+                    password
+                });
+                alert(response.data.message);
 
-            if (type === 'login') {
-                setIsLoggedIn(true); // Успішний вхід
-                localStorage.setItem('login', login); // Save login in local storage
-                localStorage.setItem('access_token', response.data.access_token); // Save access token
-                localStorage.setItem('refresh_token', response.data.refresh_token); // Save refresh token
+                if (type === 'login') {
+                    setIsLoggedIn(true); // Успішний вхід
+                    localStorage.setItem('login', login); // Save login in local storage
+                    localStorage.setItem('access_token', response.data.access_token); // Save access token
+                    localStorage.setItem('refresh_token', response.data.refresh_token); // Save refresh token
 
-                // Зберігаємо час закінчення токена
-                const expiry = Math.floor(Date.now() / 1000) + (30 * 60); // 30 хвилин у секундах
-                localStorage.setItem('token_expiry', expiry);
-                setTokenExpiry(expiry); // Оновлюємо стан терміну дії токена
+                    // Зберігаємо час закінчення токена
+                    const expiry = Math.floor(Date.now() / 1000) + (30 * 60); // 30 хвилин у секундах
+                    localStorage.setItem('token_expiry', expiry);
+                    setTokenExpiry(expiry); // Оновлюємо стан терміну дії токена
+                }
+            } catch (error) {
+                alert(error.response.data.message);
             }
-        } catch (error) {
-            alert(error.response.data.message);
+        }else {
+            Swal.fire({
+                title: "Помилка!",
+                html: 'Введіть дані',
+                icon: "error",
+            });
         }
     };
 
@@ -70,6 +79,11 @@ const Profile = ({ login, setLogin, isLoggedIn, setIsLoggedIn, setTokenExpiry })
                                         className="mb-2"
                                         value={login}
                                         onChange={(e) => setLogin(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === ' ') {
+                                                e.preventDefault();
+                                            }
+                                        }}
                                     />
                                     <h6>Пароль:</h6>
                                     <input
@@ -77,6 +91,11 @@ const Profile = ({ login, setLogin, isLoggedIn, setIsLoggedIn, setTokenExpiry })
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         type="password"
+                                        onKeyDown={(e) => {
+                                            if (e.key === ' ') {
+                                                e.preventDefault();
+                                            }
+                                        }}
                                     />
 
                                     <div>
