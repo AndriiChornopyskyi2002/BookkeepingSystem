@@ -133,38 +133,12 @@ const Books = ({login, isLoggedIn}) => {
     const [loadingBookId, setLoadingBookId] = useState(null);
 
     const toggleAction = async (bookId, actionType) => {
-        setLoadingBookId(bookId); // Встановлюємо поточний `bookId` для кнопки, яку натиснули
+        setLoadingBookId(bookId); // Встановлюємо ID книги для кнопки, яку натиснули
 
-        if (isLoggedIn) {
-            try {
-                // Перевірка, чи є лайк або збереження від користувача для цієї книги
-                const userActionResponse = await axios.get(`http://localhost:5000/book/${bookId}/user-${actionType}`, {
-                    params: { user_login: login }
-                });
-
-                const userActioned = userActionResponse.data[actionType === 'like' ? 'liked' : 'saved']; // true, якщо користувач вже виконав дію
-                const action = userActioned ? `un${actionType}` : actionType; // Визначення дії
-
-                // Виконання запиту для оновлення статусу
-                const response = await axios.post(`http://localhost:5000/book/${bookId}/${actionType}`, {
-                    action,
-                    user_login: login
-                });
-
-                // Оновлення статусу дії (лайк або збереження)
-                const updatedBooks = books.map(book =>
-                    book.id === bookId ? { ...book, [actionType === 'like' ? 'likes' : 'saves']: response.data[actionType === 'like' ? 'likes' : 'saves'] } : book
-                );
-                setBooks(updatedBooks);
-                setSavesStatus(prev => ({ ...prev, [bookId]: action === 'save' }));
-
-            } catch (error) {
-                console.error(`Error updating ${actionType} status:`, error);
-            }
-        } else {
+        if (!isLoggedIn) {
             Swal.fire({
                 title: "Помилка!",
-                html: 'Авторизуйтесь, щоб виконати теперішню дію <a href="#" id="go-to-profile" style="color: blue; text-decoration: underline; cursor: pointer;">тут</a>',
+                html: 'Авторизуйтесь, щоб виконати дію <a href="#" id="go-to-profile" style="color: blue; text-decoration: underline; cursor: pointer;">тут</a>',
                 icon: "error",
                 didOpen: () => {
                     const link = document.getElementById('go-to-profile');
@@ -174,9 +148,48 @@ const Books = ({login, isLoggedIn}) => {
                     });
                 }
             });
+            setLoadingBookId(null);
+            return;
         }
 
-        setLoadingBookId(null); // Очищаємо стан, коли запит завершено
+        try {
+            // Перевірка, чи є дія виконаною
+            const userActionResponse = await axios.get(`http://localhost:5000/book/${bookId}/user-${actionType}`, {
+                params: { user_login: login }
+            });
+
+            const userActioned = userActionResponse.data[actionType === 'like' ? 'liked' : 'saved']; // true, якщо дія виконана
+            const action = userActioned ? `un${actionType}` : actionType; // Визначення дії (лайк/зняття лайка або збереження/видалення збереження)
+
+            // Запит на оновлення статусу
+            const response = await axios.post(`http://localhost:5000/book/${bookId}/${actionType}`, {
+                action,
+                user_login: login
+            });
+
+            // Оновлення статусу дії
+            const updatedBooks = books.map(book =>
+                book.id === bookId
+                    ? {
+                        ...book,
+                        [actionType === 'like' ? 'likes' : 'saves']: response.data[actionType === 'like' ? 'likes' : 'saves']
+                    }
+                    : book
+            );
+
+            setBooks(updatedBooks);
+
+            // Оновлення статусу кнопок
+            if (actionType === 'like') {
+                setLikesStatus(prev => ({ ...prev, [bookId]: action === 'like' }));
+            } else {
+                setSavesStatus(prev => ({ ...prev, [bookId]: action === 'save' }));
+            }
+        } catch (error) {
+            console.error(`Error updating ${actionType} status:`, error);
+        } finally {
+            setLoadingBookId(null); // Завершення завантаження
+        }
     };
 
     const toggleLike = (bookId) => toggleAction(bookId, 'like');
