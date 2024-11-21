@@ -23,7 +23,7 @@ const Books = ({login, isLoggedIn}) => {
     // Функція для отримання списку книг
     const fetchBooks = async () => {
         try {
-            const response = await axios.get('https://bookkeepingsystem.onrender.com/books');
+            const response = await axios.get('http://localhost:5000/books');
             setBooks(response.data);
         } catch (error) {
             console.error('Error fetching books:', error);
@@ -43,7 +43,7 @@ const Books = ({login, isLoggedIn}) => {
         }
 
         try {
-            const response = await axios.post('https://bookkeepingsystem.onrender.com/add_book', newBook, {
+            const response = await axios.post('http://localhost:5000/add_book', newBook, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -85,7 +85,7 @@ const Books = ({login, isLoggedIn}) => {
                 try {
                     // Отримання статусу вподобань
                     const likesPromises = currentBooks.map(async (book) => {
-                        const response = await axios.get(`https://bookkeepingsystem.onrender.com/book/${book.id}/user-like`, {
+                        const response = await axios.get(`http://localhost:5000/book/${book.id}/user-like`, {
                             params: { user_login: login }
                         });
                         return { bookId: book.id, liked: response.data.liked };
@@ -100,7 +100,7 @@ const Books = ({login, isLoggedIn}) => {
 
                     // Отримання статусу збережень
                     const savesPromises = currentBooks.map(async (book) => {
-                        const response = await axios.get(`https://bookkeepingsystem.onrender.com/book/${book.id}/user-save`, {
+                        const response = await axios.get(`http://localhost:5000/book/${book.id}/user-save`, {
                             params: { user_login: login }
                         });
                         return { bookId: book.id, saved: response.data.saved };
@@ -135,36 +135,10 @@ const Books = ({login, isLoggedIn}) => {
     const toggleAction = async (bookId, actionType) => {
         setLoadingBookId(bookId); // Встановлюємо поточний `bookId` для кнопки, яку натиснули
 
-        if (isLoggedIn) {
-            try {
-                // Перевірка, чи є лайк або збереження від користувача для цієї книги
-                const userActionResponse = await axios.get(`https://bookkeepingsystem.onrender.com/book/${bookId}/user-${actionType}`, {
-                    params: { user_login: login }
-                });
-
-                const userActioned = userActionResponse.data[actionType === 'like' ? 'liked' : 'saved']; // true, якщо користувач вже виконав дію
-                const action = userActioned ? `un${actionType}` : actionType; // Визначення дії
-
-                // Виконання запиту для оновлення статусу
-                const response = await axios.post(`https://bookkeepingsystem.onrender.com/book/${bookId}/${actionType}`, {
-                    action,
-                    user_login: login
-                });
-
-                // Оновлення статусу дії (лайк або збереження)
-                const updatedBooks = books.map(book =>
-                    book.id === bookId ? { ...book, [actionType === 'like' ? 'likes' : 'saves']: response.data[actionType === 'like' ? 'likes' : 'saves'] } : book
-                );
-                setBooks(updatedBooks);
-                setSavesStatus(prev => ({ ...prev, [bookId]: action === 'save' }));
-
-            } catch (error) {
-                console.error(`Error updating ${actionType} status:`, error);
-            }
-        } else {
+        if (!isLoggedIn) {
             Swal.fire({
                 title: "Помилка!",
-                html: 'Авторизуйтесь, щоб виконати теперішню дію <a href="#" id="go-to-profile" style="color: blue; text-decoration: underline; cursor: pointer;">тут</a>',
+                html: 'Авторизуйтесь, щоб виконати дію <a href="#" id="go-to-profile" style="color: blue; text-decoration: underline; cursor: pointer;">тут</a>',
                 icon: "error",
                 didOpen: () => {
                     const link = document.getElementById('go-to-profile');
@@ -174,6 +148,47 @@ const Books = ({login, isLoggedIn}) => {
                     });
                 }
             });
+            setLoadingBookId(null);
+            return;
+        }
+
+        try {
+            // Перевірка, чи є дія виконаною
+            const userActionResponse = await axios.get(`https://bookkeepingsystem.onrender.com/book/${bookId}/user-${actionType}`, {
+                params: { user_login: login }
+            });
+
+            const userActioned = userActionResponse.data[actionType === 'like' ? 'liked' : 'saved']; // true, якщо дія виконана
+            const action = userActioned ? `un${actionType}` : actionType; // Визначення дії (лайк/зняття лайка або збереження/видалення збереження)
+
+            // Запит на оновлення статусу
+            const response = await axios.post(`https://bookkeepingsystem.onrender.com/book/${bookId}/${actionType}`, {
+                action,
+                user_login: login
+            });
+
+            // Оновлення статусу дії
+            const updatedBooks = books.map(book =>
+                book.id === bookId
+                    ? {
+                        ...book,
+                        [actionType === 'like' ? 'likes' : 'saves']: response.data[actionType === 'like' ? 'likes' : 'saves']
+                    }
+                    : book
+            );
+
+            setBooks(updatedBooks);
+
+            // Оновлення статусу кнопок
+            if (actionType === 'like') {
+                setLikesStatus(prev => ({ ...prev, [bookId]: action === 'like' }));
+            } else {
+                setSavesStatus(prev => ({ ...prev, [bookId]: action === 'save' }));
+            }
+        } catch (error) {
+            console.error(`Error updating ${actionType} status:`, error);
+        } finally {
+            setLoadingBookId(null); // Завершення завантаження
         }
 
         setLoadingBookId(null); // Очищаємо стан, коли запит завершено
