@@ -58,7 +58,7 @@ const App = () => {
         <Router>
             <div className="App">
                 <Header login={login} isLoggedIn={isLoggedIn} />
-                <div className="pb-5" style={{height: '100vh'}}>
+                <div className="pb-5">
                     <Routes>
                         <Route path="/" element={<About />} />
                         <Route path="/profile" element={<Profile setTokenExpiry={setTokenExpiry} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} login={login} setLogin={setLogin} />} />
