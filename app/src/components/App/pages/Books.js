@@ -133,7 +133,7 @@ const Books = ({login, isLoggedIn}) => {
     const [loadingBookId, setLoadingBookId] = useState(null);
 
     const toggleAction = async (bookId, actionType) => {
-        setLoadingBookId(bookId); // Встановлюємо ID книги для кнопки, яку натиснули
+        setLoadingBookId(bookId); // Встановлюємо поточний `bookId` для кнопки, яку натиснули
 
         if (!isLoggedIn) {
             Swal.fire({
@@ -154,7 +154,7 @@ const Books = ({login, isLoggedIn}) => {
 
         try {
             // Перевірка, чи є дія виконаною
-            const userActionResponse = await axios.get(`http://localhost:5000/book/${bookId}/user-${actionType}`, {
+            const userActionResponse = await axios.get(`https://bookkeepingsystem.onrender.com/book/${bookId}/user-${actionType}`, {
                 params: { user_login: login }
             });
 
@@ -162,7 +162,7 @@ const Books = ({login, isLoggedIn}) => {
             const action = userActioned ? `un${actionType}` : actionType; // Визначення дії (лайк/зняття лайка або збереження/видалення збереження)
 
             // Запит на оновлення статусу
-            const response = await axios.post(`http://localhost:5000/book/${bookId}/${actionType}`, {
+            const response = await axios.post(`https://bookkeepingsystem.onrender.com/book/${bookId}/${actionType}`, {
                 action,
                 user_login: login
             });
@@ -190,6 +190,8 @@ const Books = ({login, isLoggedIn}) => {
         } finally {
             setLoadingBookId(null); // Завершення завантаження
         }
+
+        setLoadingBookId(null); // Очищаємо стан, коли запит завершено
     };
 
     const toggleLike = (bookId) => toggleAction(bookId, 'like');
